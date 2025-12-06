@@ -1,0 +1,6 @@
+- [ ] Review PCANBasic usage requirements on Linux (libpcanbasic)
+- [x] Evaluate adapting CAN transport to use PCANBasic backend when available
+- [x] Implement PCANBasic-based CAN transport layer for Linux
+- [x] Update build configuration and documentation
+- [x] Add tests/examples reflecting PCANBasic usage on Linux
+- [x] Add TCP transport baseline and accompanying tests/examples

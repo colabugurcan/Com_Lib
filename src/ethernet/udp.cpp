@@ -66,6 +66,9 @@ UDP::UDP(UDPConfig config) : config_(std::move(config)) {
 
 UDP::~UDP() {
 	close();
+	if (receiveThread_.joinable()) {
+		receiveThread_.join();
+	}
 }
 
 bool UDP::open() {
@@ -162,7 +165,7 @@ std::ptrdiff_t UDP::send(const ByteVector& data) {
 		return -1;
 	}
 
-	auto sent = ::sendto(socket, data.data(), data.size(), 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+	auto sent = ::send(socket, data.data(), std::min(data.size(), kMaxUdpDatagramSize), 0);
 	if (sent < 0) {
 		reportError({ErrorCode::SendFailed, ErrorCategory::Transmission, ErrorSeverity::Recoverable, "Failed to send UDP datagram", "UDP::send", errno});
 		return -1;

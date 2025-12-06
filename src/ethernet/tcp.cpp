@@ -71,6 +71,9 @@ TCP::TCP(TCPConfig config) : config_(std::move(config)) {
 
 TCP::~TCP() {
 	close();
+	if (receiveThread_.joinable()) {
+		receiveThread_.join();
+	}
 }
 
 bool TCP::open() {
@@ -238,7 +241,7 @@ std::ptrdiff_t TCP::receive(ByteVector& buffer, std::size_t maxSize) {
 	}
 
 	buffer.resize(maxSize);
-	auto received = ::recv(socket, buffer.data(), maxSize, 0);
+	auto received = ::recv(socket, buffer.data(), buffer.size(), 0);
 	if (received < 0) {
 		buffer.clear();
 		if (errno == EINTR) {

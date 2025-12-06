@@ -34,8 +34,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <type_traits>
-#include <limits>
-#include <array>
 
 // ============================================================================
 // DO-178C SOFTWARE LEVEL CONFIGURATION
@@ -774,4 +772,3 @@ static_assert(kMaxIterations <= 1000000U, "kMaxIterations too large");
 
 } // namespace comm::do178c
 
-#endif // COMM_CORE_DO178C_HPP - Note: This is intentionally not here as we use #pragma once

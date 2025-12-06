@@ -14,7 +14,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 file(GLOB_RECURSE COMM_HEADERS CONFIGURE_DEPENDS "include/*.hpp")
-file(GLOB_RECURSE COMM_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+set(COMM_SOURCES
+    src/can/pcan_basic.cpp
+    src/can/socketcan.cpp
+    src/ethernet/tcp.cpp
+    src/ethernet/udp.cpp
+    src/serial/serial_port.cpp
+)
+if(NOT COMM_ENABLE_PCAN)
+    list(FILTER COMM_SOURCES EXCLUDE REGEX ".*/pcan_basic.cpp$")
+endif()
 
 find_package(Threads REQUIRED)
 
@@ -60,10 +69,12 @@ else()
     target_link_libraries(comm PUBLIC Threads::Threads)
 endif()
 
-if(COMM_HAS_PCAN)
-    target_compile_definitions(comm ${_comm_scope} COMM_HAS_PCAN=1)
-    target_include_directories(comm ${_comm_scope} ${PCANBASIC_INCLUDE_DIR})
-    target_link_libraries(comm ${_comm_scope} ${PCANBASIC_LIBRARY})
+if(COMM_ENABLE_PCAN)
+    target_compile_definitions(comm PUBLIC $<$<BOOL:${COMM_HAS_PCAN}>:COMM_HAS_PCAN>)
+    if(COMM_HAS_PCAN)
+        target_include_directories(comm PUBLIC ${PCANBASIC_INCLUDE_DIR})
+        target_link_libraries(comm PUBLIC ${PCANBASIC_LIBRARY})
+    endif()
 endif()
 
 if(COMM_ENABLE_INSTALL)

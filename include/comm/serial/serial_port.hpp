@@ -27,11 +27,9 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include <comm/core/interface.hpp>
 #include <comm/core/defaults.hpp>

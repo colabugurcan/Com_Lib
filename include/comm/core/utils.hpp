@@ -28,17 +28,6 @@
 
 namespace comm {
 
-/// @deprecated Use defaults::kReceiveThreadSleep instead.
-inline constexpr auto kDefaultReceiveSleep = defaults::kReceiveThreadSleep;
-
-/// @deprecated Use defaults::kHealthCheckInterval instead.
-inline constexpr auto kDefaultHealthCheckInterval = defaults::kHealthCheckInterval;
-
-/// @deprecated Use defaults::kMaxUdpDatagramSize instead.
-inline constexpr auto kMaxUdpDatagramSize = defaults::kMaxUdpDatagramSize;
-
-/// @deprecated Use defaults::kDefaultTcpBufferSize instead.
-inline constexpr auto kDefaultTcpBufferSize = defaults::kDefaultTcpBufferSize;
 
 /// Check if the direction allows receiving data.
 [[nodiscard]] inline bool isReceiveEnabled(Direction direction) noexcept {
@@ -52,7 +41,7 @@ inline constexpr auto kDefaultTcpBufferSize = defaults::kDefaultTcpBufferSize;
 
 /// Return the effective sleep duration, falling back to default if zero or negative.
 [[nodiscard]] inline std::chrono::milliseconds effectiveSleep(std::chrono::milliseconds requested) noexcept {
-    return requested.count() > 0 ? requested : kDefaultReceiveSleep;
+    return requested.count() > 0 ? requested : defaults::kReceiveThreadSleep;
 }
 
 /// Saturating increment for statistics counters (prevents overflow).

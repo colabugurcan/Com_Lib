@@ -30,14 +30,8 @@ namespace comm::can {
 
 namespace {
 
-/// @requirement SRS-COMM-THR-001: Default receive thread sleep
-constexpr auto kDefaultReceiveSleep = defaults::kReceiveThreadSleep;
 
-/// @requirement SRS-COMM-CAN-003: Maximum loop iterations for safety
-constexpr auto kMaxLoopIterations = defaults::kMaxReceiveLoopIterations;
 
-/// @requirement SRS-COMM-CAN-004: Maximum filter count
-constexpr auto kMaxFilters = defaults::kMaxCanFilters;
 
 /**
  * @brief Get payload limit for CAN mode
@@ -48,12 +42,6 @@ COMM_REQUIREMENT("SRS-COMM-CAN-005")
     return config.enableFD ? CANFD_MAX_DLEN : CAN_MAX_DLEN;
 }
 
-/**
- * @brief Validate socket descriptor
- */
-[[nodiscard]] inline bool isValidSocket(int fd) noexcept {
-    return fd >= 0;
-}
 
 } // namespace
 
@@ -63,6 +51,9 @@ SocketCAN::SocketCAN(SocketCANConfig config) : config_(std::move(config)) {
 
 SocketCAN::~SocketCAN() {
     close();
+    if (receiveThread_.joinable()) {
+        receiveThread_.join();
+    }
 }
 
 bool SocketCAN::open() {

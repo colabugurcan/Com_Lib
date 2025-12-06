@@ -40,7 +40,6 @@ speed_t toSpeed(int baud) {
     }
 }
 
-constexpr auto kDefaultReceiveSleep = defaults::kReceiveThreadSleep;
 
 } // namespace
 
@@ -50,6 +49,9 @@ SerialPort::SerialPort(SerialConfig config) : config_(std::move(config)) {
 
 SerialPort::~SerialPort() {
     close();
+	if (receiveThread_.joinable()) {
+		receiveThread_.join();
+	}
 }
 
 bool SerialPort::open() {
@@ -148,7 +150,7 @@ std::ptrdiff_t SerialPort::receive(ByteVector& buffer, std::size_t maxSize) {
     }
 
     buffer.resize(maxSize);
-    auto result = ::read(fd, buffer.data(), maxSize);
+	auto result = ::read(fd, buffer.data(), buffer.size());
     if (result < 0) {
         buffer.clear();
         if (errno == EAGAIN || errno == EWOULDBLOCK) {

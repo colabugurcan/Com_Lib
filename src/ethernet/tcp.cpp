@@ -31,8 +31,6 @@ namespace comm::ethernet {
 
 namespace {
 
-/// @requirement SRS-COMM-THR-001: Default receive thread sleep
-constexpr auto kDefaultReceiveSleep = defaults::kReceiveThreadSleep;
 
 /// @requirement SRS-COMM-TCP-002: Maximum receive loop iterations
 constexpr auto kMaxReceiveLoopIterations = defaults::kMaxReceiveLoopIterations;
@@ -40,12 +38,6 @@ constexpr auto kMaxReceiveLoopIterations = defaults::kMaxReceiveLoopIterations;
 /// @requirement SRS-COMM-TCP-003: Maximum connection attempts
 constexpr auto kMaxConnectionAttempts = defaults::kMaxConnectionAttempts;
 
-/**
- * @brief Validate socket file descriptor
- */
-[[nodiscard]] inline bool isValidSocket(int fd) noexcept {
-    return fd >= 0;
-}
 
 } // namespace
 
@@ -71,6 +63,9 @@ TCP::TCP(TCPConfig config) : config_(std::move(config)) {
 
 TCP::~TCP() {
 	close();
+	if (receiveThread_.joinable()) {
+		receiveThread_.join();
+	}
 }
 
 bool TCP::open() {
@@ -238,7 +233,7 @@ std::ptrdiff_t TCP::receive(ByteVector& buffer, std::size_t maxSize) {
 	}
 
 	buffer.resize(maxSize);
-	auto received = ::recv(socket, buffer.data(), maxSize, 0);
+	auto received = ::recv(socket, buffer.data(), buffer.size(), 0);
 	if (received < 0) {
 		buffer.clear();
 		if (errno == EINTR) {
@@ -569,7 +564,7 @@ void TCP::stopReceiveLoop() {
 void TCP::receiveLoop() {
 	while (running_.load()) {
 		ByteVector buffer;
-		auto result = receive(buffer, kDefaultTcpBufferSize);
+		auto result = receive(buffer, comm::defaults::kDefaultTcpBufferSize);
 		if (result > 0) {
 			receiveCallback_.notify(buffer);
 		} else {

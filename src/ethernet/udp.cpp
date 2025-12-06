@@ -30,8 +30,6 @@ namespace comm::ethernet {
 
 namespace {
 
-/// @requirement SRS-COMM-THR-001: Default receive thread sleep
-constexpr auto kDefaultReceiveSleep = defaults::kReceiveThreadSleep;
 
 /// @requirement SRS-COMM-UDP-002: Maximum receive loop iterations
 constexpr auto kMaxReceiveLoopIterations = defaults::kMaxReceiveLoopIterations;
@@ -39,12 +37,6 @@ constexpr auto kMaxReceiveLoopIterations = defaults::kMaxReceiveLoopIterations;
 /// @requirement SRS-COMM-UDP-003: Maximum health check iterations
 constexpr auto kMaxHealthCheckIterations = defaults::kMaxHealthCheckIterations;
 
-/**
- * @brief Validate socket file descriptor
- */
-[[nodiscard]] inline bool isValidSocket(int fd) noexcept {
-    return fd >= 0;
-}
 
 } // namespace
 
@@ -66,6 +58,9 @@ UDP::UDP(UDPConfig config) : config_(std::move(config)) {
 
 UDP::~UDP() {
 	close();
+	if (receiveThread_.joinable()) {
+		receiveThread_.join();
+	}
 }
 
 bool UDP::open() {
@@ -162,7 +157,11 @@ std::ptrdiff_t UDP::send(const ByteVector& data) {
 		return -1;
 	}
 
-	auto sent = ::sendto(socket, data.data(), data.size(), 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+	if (data.size() > comm::defaults::kMaxUdpDatagramSize) {
+		reportError({ErrorCode::InvalidConfiguration, ErrorCategory::Configuration, ErrorSeverity::Warning, "UDP datagram size exceeds maximum allowed size", "UDP::send"});
+		return -1;
+	}
+	auto sent = ::send(socket, data.data(), data.size(), 0);
 	if (sent < 0) {
 		reportError({ErrorCode::SendFailed, ErrorCategory::Transmission, ErrorSeverity::Recoverable, "Failed to send UDP datagram", "UDP::send", errno});
 		return -1;
@@ -436,7 +435,7 @@ void UDP::stopHealthMonitor() {
 void UDP::receiveLoop() {
 	while (running_.load()) {
 		ByteVector buffer;
-		auto result = receive(buffer, kMaxUdpDatagramSize);
+		auto result = receive(buffer, comm::defaults::kMaxUdpDatagramSize);
 		if (result > 0) {
 			receiveCallback_.notify(buffer);
 			continue;
@@ -507,7 +506,7 @@ void UDP::scheduleHealthCheck() {
 
 void UDP::healthMonitorLoop() {
 	while (healthMonitorRunning_.load()) {
-		std::this_thread::sleep_for(kDefaultHealthCheckInterval);
+		std::this_thread::sleep_for(comm::defaults::kHealthCheckInterval);
 
 		auto elapsed = timeSinceLastActivity();
 

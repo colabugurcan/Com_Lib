@@ -14,7 +14,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 file(GLOB_RECURSE COMM_HEADERS CONFIGURE_DEPENDS "include/*.hpp")
-file(GLOB_RECURSE COMM_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+set(COMM_SOURCES
+    src/can/pcan_basic.cpp
+    src/can/socketcan.cpp
+    src/ethernet/tcp.cpp
+    src/ethernet/udp.cpp
+    src/serial/serial_port.cpp
+)
+if(NOT COMM_ENABLE_PCAN)
+    list(FILTER COMM_SOURCES EXCLUDE REGEX ".*/pcan_basic.cpp$")
+    list(FILTER COMM_SOURCES EXCLUDE REGEX ".*/socketcan.cpp$")
+endif()
 
 find_package(Threads REQUIRED)
 

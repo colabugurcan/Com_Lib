@@ -63,6 +63,9 @@ SocketCAN::SocketCAN(SocketCANConfig config) : config_(std::move(config)) {
 
 SocketCAN::~SocketCAN() {
     close();
+    if (receiveThread_.joinable()) {
+        receiveThread_.join();
+    }
 }
 
 bool SocketCAN::open() {

@@ -350,6 +350,12 @@ std::ptrdiff_t PCANBasic::send(const ByteVector& data) {
         }
         
         status = ::CAN_WriteFD(handle(), &message);
+        if (status != PCAN_ERROR_OK) {
+            reportError({ErrorCode::SendFailed, ErrorCategory::Transmission, ErrorSeverity::Recoverable, "Failed to write PCAN FD frame", "PCANBasic::send"});
+            recordFailure();
+            static_cast<void>(recoverIfNeeded(status));
+            return -1;
+        }
     } else {
         COMM_BRANCH("send-standard-frame");
         tagTPCANMsg message{};
@@ -366,6 +372,12 @@ std::ptrdiff_t PCANBasic::send(const ByteVector& data) {
         }
         
         status = ::CAN_Write(handle(), &message);
+        if (status != PCAN_ERROR_OK) {
+            reportError({ErrorCode::SendFailed, ErrorCategory::Transmission, ErrorSeverity::Recoverable, "Failed to write PCAN frame", "PCANBasic::send"});
+            recordFailure();
+            static_cast<void>(recoverIfNeeded(status));
+            return -1;
+        }
     }
 
     // ===== HANDLE RESULT =====

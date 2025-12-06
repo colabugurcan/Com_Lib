@@ -57,7 +57,7 @@ inline constexpr std::uint32_t kMaxSequenceNumber{std::numeric_limits<std::uint3
 inline constexpr std::uint32_t kCrc32Polynomial{0xEDB88320U};
 
 /// Magic number for frame validation
-inline constexpr std::uint32_t kFrameMagic{0xAVIO'SAFE};
+inline constexpr std::uint32_t kFrameMagic{0x4156494F};
 
 // ============================================================================
 // CRC32 Checksum (Data Integrity)

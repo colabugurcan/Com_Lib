@@ -2,8 +2,11 @@
 
 #include <cstdint>
 
+#ifdef COMM_HAS_PCAN
 #include <comm/can/pcan_basic.hpp>
+#endif
 
+#ifdef COMM_HAS_PCAN
 TEST(PCANBasicConfigTest, DefaultsAreInitialized) {
     comm::can::PCANBasicConfig config;
     EXPECT_EQ(config.protocol, comm::Protocol::CAN);
@@ -31,3 +34,4 @@ TEST(PCANBasicTest, SendWithoutOpenReportsError) {
     EXPECT_GT(can.getStatistics().errorCount, 0u);
     EXPECT_FALSE(can.isHealthy());
 }
+#endif
